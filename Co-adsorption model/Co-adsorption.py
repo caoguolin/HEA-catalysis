@@ -11,9 +11,9 @@ Pure_Fillings = {'Ag':0.978,'Ir':0.819,'Pd':0.913,'Pt':0.875,'Ru':0.802,'Au':0.9
 Pure_antiFillings = {'Ag':0.132,'Ir':0.181,'Pd':0.087,'Pt':0.125,'Ru':0.198,'Au':0.038,'Rh':0.174,'Os':0.224,'Cu':0.033}
 Pure_Xs = {'Ag':1.93,'Ir':2.20,'Pd':2.20,'Pt':2.28,'Ru':2.2,'Au':2.54,'Rh':2.28,'Os':2.2,'Cu':1.9}
 
-##设计100*100的HEA slab，进行元素填充占据
+## Design the 100*100 atoms HEA slabs using element substitution method
 
-##根据index转换为坐标
+## Defining function IndextoCoord: determine the columns and rows of the atom based on its index
 def IndextoCoord(indexs):
     coords = []
     for i in range(len(indexs)):
@@ -29,7 +29,7 @@ def IndextoCoord(indexs):
 
     return coords
 
-##判断相邻度
+## Defining function NeighborDegree: determine whether culsters are formed due to the proximity between atoms of same elements
 def NeighborDegree(coords):
     closed_atom_num = 0
     for i in range(len(coords)):
@@ -51,35 +51,35 @@ def NeighborDegree(coords):
     return closed_atom_num
 
 
-
-# ##判断结构是否合理
+## Defining function GenerateSlab: Generate sufaces based on random seeds and determine if the structure is reasonable(following the SQS)
 def GenerateSlab(ratios,seed):
     all_index = list(range(0,10000))
     whether_reasonable = 0
     random.seed(seed)
-        ##先取第一种元素
+    ## The first element
     ele_first_index = sorted(random.sample(list(range(0,10000)),int(ratios[0]/sum(ratios)*10000)))
     # if NeighborDegree(IndextoCoord(ele_first_index)) == 0:
     #     whether_reasonable += 1
 
-    ##取第二种元素
+    ## The second element
     all_index_first = list(set(all_index)-set(ele_first_index))
     ele_sec_index = sorted(random.sample(all_index_first,int(ratios[1]/sum(ratios)*10000)))
     # if NeighborDegree(IndextoCoord(ele_sec_index)) == 0:
     #     whether_reasonable += 1
     
-    ##取第三种元素
+    ## The third element
     all_index_sec = list(set(all_index_first)-set(ele_sec_index))
     ele_third_index = sorted(random.sample(all_index_sec,int(ratios[2]/sum(ratios)*10000)))
     # if NeighborDegree(IndextoCoord(ele_third_index)) == 0:
     #     whether_reasonable += 1
 
-    ##取第四种元素
+    ## The fourth element
     all_index_third = list(set(all_index_sec)-set(ele_third_index))
     ele_fourth_index = sorted(random.sample(all_index_third,int(ratios[3]/sum(ratios)*10000)))
     # if NeighborDegree(IndextoCoord(ele_fourth_index)) == 0:
     #     whether_reasonable += 1
 
+    '''## Five element HEA to Eight element HEA
     # all_index_fourth = list(set(all_index_third)-set(ele_fourth_index))
     # ele_fifth_index = sorted(random.sample(all_index_fourth,int(ratios[4]/sum(ratios)*10000)))
 
@@ -90,45 +90,43 @@ def GenerateSlab(ratios,seed):
     # ele_seventh_index = sorted(random.sample(all_index_sixth,int(ratios[6]/sum(ratios)*10000)))
 
     # ele_eighth_index = sorted(list(set(all_index_sixth)-set(ele_seventh_index)))
+    '''
 
-    ##剩下的为第五种元素
+    ## The remaining is the fifth element
     ele_fifth_index = sorted(list(set(all_index_third)-set(ele_fourth_index)))
     # if NeighborDegree(IndextoCoord(ele_fifth_index)) == 0:
     #     whether_reasonable += 1
         
         # seed = seed + 1 
-    ##10W次循环来检查结构合理性,运行时间过长
     return [ele_first_index,ele_sec_index,ele_third_index,ele_fourth_index,ele_fifth_index],seed,whether_reasonable
     # return [ele_first_index,ele_sec_index,ele_third_index,ele_fourth_index,ele_fifth_index,ele_sixth_index,ele_seventh_index,ele_eighth_index],seed
 
 
-##定义top位点和fcc位点的局域环境坐标组合
+## The combination of local environment geometric coordinates for defining top sites and fcc hollow sites
 
-##对于top位点，包含在位1，表面近邻6，次表面近邻3
-##当在位x为奇数行时(计算机语言的奇数):
-##[x,y]  x为行，y为列
-##[x,y-1];[x,y+1];[x-1,y];[x-1,y+1];[x+1,y];[x+1,y+1]
-##[x-1,y];[x,y-1];[x,y]   ##次
-##而当在位x为偶数行时:
-##[x,y]
-##[x,y-1];[x,y+1];[x-1,y-1];[x-1,y];[x+1,y-1];[x+1,y]
-##[x-1,y-1];[x,y-1];[x,y]   ##次
+## For top sites, the local environment contains 1 atom onsite, 6 atoms near the surface, and 3 atoms near the subsurface
+## When x is an odd row, the row and column information of all atoms in the local environment:
+## [x,y]  x is the row, y is the column
+## [x,y-1];[x,y+1];[x-1,y];[x-1,y+1];[x+1,y];[x+1,y+1]
+## [x-1,y];[x,y-1];[x,y]   ##
+## When x is an even row, the row and column information of all atoms in the local environment:
+## [x,y]
+## [x,y-1];[x,y+1];[x-1,y-1];[x-1,y];[x+1,y-1];[x+1,y]
+## [x-1,y-1];[x,y-1];[x,y]   ##
 
-##而对于fcc位点，包含在位3，表面近邻9，次表面近邻6
-##fcc为正三角
-##[x,y],上顶点
-##当x为奇数：
-##[x,y];[x+1,y];[x+1,y+1]
-##[x-1,y];[x-1,y+1];[x,y-1];[x,y+1];[x+1,y-1];[x+1,y+2];[x+2,y-1];[x+2,y];[x+2,y+1]
-##[x-1,y];[x,y-1];[x,y];[x+1,y-1];[x+1,y];[x+1,y+1]  ##次
-##当x为偶数：
-##[x,y];[x+1,y-1];[x+1,y]
-##[x-1,y-1];[x-1,y];[x,y-1];[x,y+1];[x+1,y-2];[x+1,y+1];[x+2,y-1];[x+2,y];[x+2,y+1]
-##[x-1,y-1];[x,y-1];[x,y];[x+1,y-2];[x+1,y-1];[x+1,y]   ##次
+## For fcc sites, the local environment contains 3 atom onsite, 9 atoms near the surface, and 6 atoms near the subsurface
+## When x is an odd row, the row and column information of all atoms in the local environment:
+## [x,y];[x+1,y];[x+1,y+1]
+## [x-1,y];[x-1,y+1];[x,y-1];[x,y+1];[x+1,y-1];[x+1,y+2];[x+2,y-1];[x+2,y];[x+2,y+1]
+## [x-1,y];[x,y-1];[x,y];[x+1,y-1];[x+1,y];[x+1,y+1]  ##
+## When x is an even row, the row and column information of all atoms in the local environment:
+## [x,y];[x+1,y-1];[x+1,y]
+## [x-1,y-1];[x-1,y];[x,y-1];[x,y+1];[x+1,y-2];[x+1,y+1];[x+2,y-1];[x+2,y];[x+2,y+1]
+## [x-1,y-1];[x,y-1];[x,y];[x+1,y-2];[x+1,y-1];[x+1,y]   ##
 
 
+## Defining function GetLocalSiteCoord: Obtain the row and column coordinates of all atoms in the entire local environment based on the index of adsorbed atoms onsite
 def GetLocalSiteCoord(index_site_coord,ads_type):
-    ##根据顶点索引来得到局域环境的所有原子的坐标
     x,y = index_site_coord[0],index_site_coord[1]
     if ads_type == 'top':
         if x%2 == 0:
@@ -151,8 +149,8 @@ def GetLocalSiteCoord(index_site_coord,ads_type):
     
     return sites,slab_neighbor,subslab_neighbor
 
+## Defining function GetIndexSiteCoord: Obtain the row and column coordinates of all atoms onsite based on the adsorption type
 def GetIndexSiteCoord(ads_type):
-    ##获得表面所有的索引顶点坐标
     index_sites = []
     if ads_type == 'top':
         for i in range(1,99):
@@ -165,8 +163,8 @@ def GetIndexSiteCoord(ads_type):
 
     return index_sites
 
+## Defining function CoordtoEle: Judging the tyoe of atomic element based on atomic row and column coordinates and the slab information
 def CoordtoEle(slab,coord,eles):
-    ##根据原子序列坐标来得知其元素信息
     x,y = coord[0],coord[1]
     index = x*100 + y
     if index in slab[0]:
@@ -179,7 +177,7 @@ def CoordtoEle(slab,coord,eles):
         ele = eles[3]
     elif index in slab[4]:
         ele = eles[4]
-    ##
+    ## Five element HEA to Eight element HEA
     elif index in slab[5]:
         ele = eles[5]
     elif index in slab[6]:
@@ -189,9 +187,9 @@ def CoordtoEle(slab,coord,eles):
 
     return ele
 
+## Defining function GetLocalInfor: Obtain element and index information of all local environments within a certain instance HEA surface model
 def GetLocalInfor(slab1,slab2,index_site,ads_type,eles):
-    ##slab1为表面，slab2为次表面
-    ##根据顶点求得某一局域的元素信息和索引信息，索引信息用于后续的筛选
+    ## slab1 is the surface, slab2 is the subsurface
     if ads_type == 'top':
         local_coords = GetLocalSiteCoord(index_site,'top')
         point_index = [local_coords[0][0][0]*100 + local_coords[0][0][1]]
@@ -255,8 +253,8 @@ def GetLocalInfor(slab1,slab2,index_site,ads_type,eles):
 
     return [point_index,point_envir],[slab_neighbor_index,slab_neighbor_envir],[subslab_neighbor_index,subslab_neighbor_envir]
 
+## Defining function ModeltoEn: Predicting adsorption energy using proposed descriptors based on local environment information
 def ModeltoEn(point_envir,slab_envir,subslab_envir,ads,ads_type):
-    ##描述符模型预测吸附能
     if ads == 'OH' and ads_type == 'top':
         point_xs = [Pure_Xs[point_envir[0]]]
         if point_envir[0] == 'Ag':
@@ -281,8 +279,8 @@ def ModeltoEn(point_envir,slab_envir,subslab_envir,ads,ads_type):
 
     return En
 
+## Defining function GetSurfaceEn: Obtain the -O/-OH adsorption energy of all sites on the HEA surface
 def GetSurfaceEn(slab1,slab2,ads,eles):
-    ##获取一个表面的所有吸附能
     Ens = []
     Indexs = []
     if ads == 'O':
@@ -304,8 +302,8 @@ def GetSurfaceEn(slab1,slab2,ads,eles):
 
     return Ens,Indexs
 
+## Co-adsorption Model: Sort the adsorption sites of -O and -OH acoording to their stability and screen the adsorption energy based on the neighbor blocking effect
 def SortFilter(O_ens,O_indexs,OH_ens,OH_indexs):
-    ##对O和OH进行排序和筛选
     O_ens,OH_ens = np.array(O_ens),np.array(OH_ens)
     Ens_O,Ens_OH = np.sort(O_ens),np.sort(OH_ens)
     sorted_EnO_indexs,sorted_EnOH_indexs = np.argsort(O_ens),np.argsort(OH_ens)
@@ -360,8 +358,8 @@ def SortFilter(O_ens,O_indexs,OH_ens,OH_indexs):
     
     return real_O_ens,real_OH_ens
 
+## Defining function GetSurfaceCurrent: Using the formulas to convert the net adsorption energies of the surface into the average current density to measure its catalytic activity
 def GetSurfaceCurrent(O_ens,OH_ens,Pt_O_Eads=1.439,Pt_OH_Eads=0.522,U=0.82):
-    ##求表面的电流密度以衡量其活性
     all_j = []
     for i in range(len(O_ens)):
         cur_jk = -math.e**((U-0.86-abs(O_ens[i]-(Pt_O_Eads+0.2)))*(1.6e-19)/((1.38e-23)*(300)))
@@ -372,10 +370,10 @@ def GetSurfaceCurrent(O_ens,OH_ens,Pt_O_Eads=1.439,Pt_OH_Eads=0.522,U=0.82):
         cur_j = (-cur_jk)/(cur_jk-1) 
         all_j.append(cur_j)
 
-    all_j
     res = sum(all_j)/10000
     return res
 
+## Defining function GenertaeComponent: Generate different proportions of HEA components intermittently based on the proportional step size
 def GenerateComponent(ratio_step):
     coms = []
     fold = int(100/ratio_step)
@@ -389,63 +387,23 @@ def GenerateComponent(ratio_step):
     
     return coms
 
-##Main
-##设定表面生成条件
-# eles = ['Ag','Ir','Pd','Pt','Ru']
-# eles_ratio = [20,20,20,20,20]
 
-
-##生成表面
-# slab1 = GenerateSlab(eles_ratio,100)[0]
-# slab2 = GenerateSlab(eles_ratio,150)[0]
-
-##生成表面所有吸附能信息
-# O_Ens = GetSurfaceEn(slab1,slab2,'O')
-# OH_Ens =  GetSurfaceEn(slab1,slab2,'OH')
-
-##对表面吸附情况进行筛选
-# filtered_Ens = SortFilter(O_Ens[0],O_Ens[1],OH_Ens[0],OH_Ens[1])
-
-##求表面电流密度
-# J = GetSurfaceCurrent(filtered_Ens[0],filtered_Ens[1])
-
-#生成系列数据并保存本地
-# eles = ['Ag','Ir','Pd','Pt','Ru']
-
-# ele_list = [['Pd','Ir','Ag','Pt','Ru'],
-#             ['Pt','Ru','Ag','Ir','Pd'],
-#             ['Au','Ir','Pd','Pt','Ru'],
-#             ['Au','Pd','Ir','Pt','Ru'],
-#             ['Au','Pt','Ir','Pd','Ru'],
-#             ['Au','Ru','Ir','Pd','Pt'],
-#             ['Cu','Ir','Pd','Pt','Ru'],
-#             ['Cu','Pd','Ir','Pt','Ru'],
-#             ['Cu','Pt','Ir','Pd','Ru'],
-#             ['Cu','Ru','Ir','Pd','Pt'],
-#             ['Pt','Rh','Ag','Pd','Ru'],
-#             ['Pd','Rh','Ag','Pt','Ru']]
-
-# ele_list = [['Au','Ag','Pd','Pt','Ir','Ru','Rh','Os']]
+## Main Run
+## Set the elements type of the HEA surfaces
 ele_list = [['Pd','Ru','Ag','Ir','Pt']]
+ratio_step = 5
 
 for k in range(len(ele_list)):
     eles = ele_list[k]
-    coms = GenerateComponent(5)
-    # coms = [[0,0,100],[0,100,0],[100,0,0]]
+    coms = GenerateComponent(ratio_step)
     current_densitys = []
     Ens_num = []
     for i in range(len(coms)):
-        # ele_ratio_1,ele_ratio_3,ele_ratio_6 = int(coms[i][0]/2),int(coms[i][1]/3),int(coms[i][2]/3)
-        # ele_ratio_4,ele_ratio_7 = int(coms[i][1]/3),int(coms[i][2]/3)
-        # ele_ratio_2,ele_ratio_5,ele_ratio_8 = coms[i][0] - ele_ratio_1,coms[i][1]-ele_ratio_3-ele_ratio_4,coms[i][2]-ele_ratio_6-ele_ratio_7
         ele_ratio_1 = coms[i][0]
         ele_ratio_2 = coms[i][1]
         ele_ratio_3,ele_ratio_4 = int(coms[i][2]/3),int(coms[i][2]/3)
         ele_ratio_5 = coms[i][2] - ele_ratio_3 - ele_ratio_4
-        # ele_ratio_2,ele_ratio_4 = int(coms[i][1]/2),int(coms[i][2]/2)
-        # ele_ratio_3,ele_ratio_5 = coms[i][1]-ele_ratio_2,coms[i][2]-ele_ratio_4
         eles_ratio = [ele_ratio_1,ele_ratio_2,ele_ratio_3,ele_ratio_4,ele_ratio_5]
-        # eles_ratio = [ele_ratio_1,ele_ratio_2,ele_ratio_3,ele_ratio_4,ele_ratio_5,ele_ratio_6,ele_ratio_7,ele_ratio_8]
         slab1 = GenerateSlab(eles_ratio,100)[0]
         slab2 = GenerateSlab(eles_ratio,150)[0]
         O_Ens = GetSurfaceEn(slab1,slab2,'O',eles)
@@ -457,47 +415,6 @@ for k in range(len(ele_list)):
         current_densitys.append(J)
         Ens_num.append(En_num)
         
-    # np.save('expernpy/coms/coms{}{}.npy'.format(eles[0],eles[1]),np.array(coms))
-    np.save('expernpy/coms/comsPdRu.npy',np.array(coms))
-    # np.save('expernpy/current/current{}{}.npy'.format(eles[0],eles[1]),np.array(current_densitys))
-    np.save('expernpy/current/currentPdRu.npy',np.array(current_densitys))
-    # np.save('npy/en_num/ennum{}{}.npy'.format(eles[0],eles[1]),np.array(Ens_num))
+    np.save('npy/coms/coms{}{}.npy'.format(eles[0],eles[1]),np.array(coms))
+    np.save('npy/current/current{}{}.npy'.format(eles[0],eles[1]),np.array(current_densitys))
 
-
-for k in range(len(ele_list)):
-    eles = ele_list[k]
-    coms = GenerateComponent(2)
-    # coms = [[0,0,100],[0,100,0],[100,0,0]]
-    current_densitys = []
-    Ens_num = []
-    for i in range(len(coms)):
-        # ele_ratio_1,ele_ratio_3,ele_ratio_6 = int(coms[i][0]/2),int(coms[i][1]/3),int(coms[i][2]/3)
-        # ele_ratio_4,ele_ratio_7 = int(coms[i][1]/3),int(coms[i][2]/3)
-        # ele_ratio_2,ele_ratio_5,ele_ratio_8 = coms[i][0] - ele_ratio_1,coms[i][1]-ele_ratio_3-ele_ratio_4,coms[i][2]-ele_ratio_6-ele_ratio_7
-        ele_ratio_1 = coms[i][0]
-        ele_ratio_2 = coms[i][1]
-        ele_ratio_3,ele_ratio_4 = int(coms[i][2]/3),int(coms[i][2]/3)
-        ele_ratio_5 = coms[i][2] - ele_ratio_3 - ele_ratio_4
-        # ele_ratio_2,ele_ratio_4 = int(coms[i][1]/2),int(coms[i][2]/2)
-        # ele_ratio_3,ele_ratio_5 = coms[i][1]-ele_ratio_2,coms[i][2]-ele_ratio_4
-        eles_ratio = [ele_ratio_1,ele_ratio_2,ele_ratio_3,ele_ratio_4,ele_ratio_5]
-        # eles_ratio = [ele_ratio_1,ele_ratio_2,ele_ratio_3,ele_ratio_4,ele_ratio_5,ele_ratio_6,ele_ratio_7,ele_ratio_8]
-        slab1 = GenerateSlab(eles_ratio,100)[0]
-        slab2 = GenerateSlab(eles_ratio,150)[0]
-        O_Ens = GetSurfaceEn(slab1,slab2,'O',eles)
-        OH_Ens =  GetSurfaceEn(slab1,slab2,'OH',eles)
-        filtered_Ens = SortFilter(O_Ens[0],O_Ens[1],OH_Ens[0],OH_Ens[1])
-        En_num = len(filtered_Ens[0]) + len(filtered_Ens[1])
-        J = GetSurfaceCurrent(filtered_Ens[0],filtered_Ens[1])
-
-        current_densitys.append(J)
-        Ens_num.append(En_num)
-        
-    # np.save('expernpy/coms/coms{}{}.npy'.format(eles[0],eles[1]),np.array(coms))
-    np.save('expernpy/coms/comsPdRu2.npy',np.array(coms))
-    # np.save('expernpy/current/current{}{}.npy'.format(eles[0],eles[1]),np.array(current_densitys))
-    np.save('expernpy/current/currentPdRu2.npy',np.array(current_densitys))
-    # np.save('npy/en_num/ennum{}{}.npy'.format(eles[0],eles[1]),np.array(Ens_num))
-
-
-print()
