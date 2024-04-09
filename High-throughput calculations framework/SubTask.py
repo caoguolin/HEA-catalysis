@@ -1,15 +1,3 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-'''
-@File    :   SubTask.py
-@Time    :   2021/11/16 21:03:30
-@Author  :   Cao Guolin 
-@Version :   1.0
-@Contact :   kafeicgl@sina.com
-@License :   (C)Copyright 2020-2021, Liugroup-DFT
-@Desc    :   None
-'''
-
 # here put the import lib
 
 import os
